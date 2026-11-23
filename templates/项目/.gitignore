@@ -1,0 +1,4 @@
+# harness 运行日志不入库（文件本身保留作证据）
+logs/harness.log
+logs/harness/
+__pycache__/

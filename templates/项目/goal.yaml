@@ -1,0 +1,60 @@
+# 目标授权书（Research Director 填写；AI 只读，不得修改）
+# 你只需定义：目标、参照、成功标准、预算、边界。其余由 AI 在授权范围内自主完成。
+
+goal: >-
+  （一句话研究目标，例如：在 X 数据集上把 Y 指标做到优于 Z 基线）
+
+references:            # 参照对象：论文 / 模型 / 已有结果
+  - name: "（基线名）"
+    source: "（论文链接或本地结果路径）"
+    metric_value: null   # 参照指标数值
+
+success_criteria:
+  metric: "（主指标名，例如 test_mse，越小越好）"
+  direction: minimize    # minimize 或 maximize
+  # 有效提升 = 对最强基线的配对 bootstrap 95% 置信区间不跨 0（以评估样本为重采样单位），且 ≥3 个有真随机性、未用于选参的种子方向一致
+  min_seeds: 3
+  ci_level: 0.95
+
+budget:
+  explore_ratio: 0.2     # 20% 自由探索，80% 验证主线
+  toy_minutes: 5         # 单个 Toy 实验上限
+  pilot_minutes: 60      # 单个 Pilot 实验上限
+  full_requires_approval: true   # 晋级 Full 必须你批准
+  max_iterations: 30     # harness 外层迭代上限
+  max_wall_hours: 72     # 连续运行上限
+  gpus: "0,1"            # 允许使用的本机 GPU（CUDA_VISIBLE_DEVICES），本机可占用，不限卡号
+  max_gpu_hours: 24      # 累计 GPU 小时上限（实验.py 强制，含集群作业）
+  gpu_wait_minutes: 30   # 允许的卡都被别的任务占用时最多等几分钟（实验.py 自动挑空闲卡；等满仍忙就运行并标记争用）
+  max_run_seconds: null  # 单次运行硬上限（秒，命令总时长，含加载与推理）；超了 实验.py 标记作废
+  full_hours: 24         # 单个 Full 集群作业限时
+
+env:
+  python_bin: null       # 实验用的 Python 环境 bin 目录，如 ~/miniconda3/envs/deeplearning/bin
+  extra_dirs: []         # 课题目录以外需要读的目录（如共享数据）
+
+compute:               # 算力（用户 11-22）：实验.py 默认 --where 自动，估"排队 + 开销 + 运行/速度"，选最先跑完的
+  allowed: [本机, ku-h100, madar]   # 本机 2×4090；ku-h100 4×H100 NVL（每人 ≤2 作业、≤6 小时）；madar H200
+  speed: {}              # 相对 4090 的速度倍数，默认 ku-h100 1.5、madar 1.8；实测后可在这里覆盖
+  # 自动退回本机的情况：纯 CPU 课题、设了 max_run_seconds（计时按 4090）、数据只在本机（extra_dirs 且无 remote_data）
+
+ku_h100:               # ku-h100 集群覆盖项（不用写就用 集群.py 默认）
+  python: <集群存储目录>/q2_ttrl/venv/vl/bin/python   # torch 2.8；缺包时换成课题自己的环境
+
+slurm:                 # madar 集群（--where madar 或自动选中时使用）
+  account: <slurm-account>      # 只允许 <slurm-account>，写死在 集群.py，改了也会被拒
+  partition: gpu
+  gres: gpu:nvidia_h200:1
+  python: ~/.conda/envs/SimVQ/bin/python
+  remote_dir: /dpc/<slurm-account>/harness
+  remote_data: null      # 课题用到 extra_dirs 里的本机数据时必填：集群上的数据路径（作业里以 HARNESS_DATA_DIR 提供）
+
+locked_paths:          # 额外只读路径（守卫 hook 强制），如基线结果
+  - baselines/*
+
+boundaries:            # AI 不能越过的边界
+  - 不得修改 goal.yaml、评估代码（eval/）和测试集划分
+  - 不得改变研究目标；转向需写入 research-state.yaml 并停下等批准
+  - 不得 git push、删除他人文件、访问课题目录以外的数据
+  - 遇到错误不得偷偷换方法/模型/数据集绕过（范围变更守卫）
+  - 只做纯计算机实验，不涉及硬件设备

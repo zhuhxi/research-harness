@@ -1,0 +1,17 @@
+# 研究状态（AI 每次迭代读写；harness 依据 status 决定是否继续）
+# status 取值：
+#   running         继续自主运行（默认；尽量保持）
+#   needs_approval  只用于必须停下的事：改变研究目标/转向、超预算、不可逆的对外操作（公开仓库、许可证）
+#   done            目标完成或预算用尽
+status: running
+approval_request: ""     # status=needs_approval 时写清要批准什么、证据在哪
+pending_approvals: []    # 不停机的待批事项（Full 晋级、判据修正、待删大文件清单、产品选项等）：
+                         # 每项 {item, reason, evidence}；写进简报"需要你决定"，AI 继续做别的
+iteration: 0
+waiting_for_jobs: false  # 设为 true：harness 等集群作业全部结束后再唤醒 AI（等待期间不耗额度）
+best:                    # 当前最好结果（必须指向证据文件）
+  hypothesis: null
+  metric: null
+  evidence: null
+hypotheses: []           # 每项：{id, title, stage: toy|pilot|full, verdict: pending|supported|refuted|inconclusive(存疑)|abandoned, folder}  # verdict 只填一个值；一个假设有分项结论就拆成 H03-A、H03-B 两项
+next_action: "先跑基线 Toy，确认评估流程与噪声水平"

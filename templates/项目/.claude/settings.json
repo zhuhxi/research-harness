@@ -1,0 +1,68 @@
+{
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Glob",
+      "Grep",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(timeout *)",
+      "Bash(nvidia-smi*)",
+      "Bash(ls *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(mkdir *)",
+      "Bash(git status*)",
+      "Bash(git diff*)",
+      "Bash(git log*)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(cd *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(touch *)",
+      "Bash(echo *)",
+      "Bash(grep *)",
+      "Bash(wc *)",
+      "Bash(sed *)",
+      "Bash(find *)",
+      "Bash(sort *)",
+      "Bash(diff *)",
+      "Bash(git -C *)",
+      "Bash(for *)",
+      "Bash(while *)",
+      "Bash(test *)",
+      "Bash([ *)",
+      "Bash(pwd*)",
+      "Bash(stat *)",
+      "Bash(du *)",
+      "Bash(awk *)",
+      "Bash(jq *)"
+    ],
+    "deny": [
+      "Edit(goal.yaml)",
+      "Edit(eval/**)",
+      "Edit(approvals/**)",
+      "Bash(git push*)",
+      "Bash(git reset*)",
+      "Bash(rm -rf*)",
+      "Bash(sudo *)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 \"$CLAUDE_PROJECT_DIR/.claude/hooks/守卫.py\""
+          }
+        ]
+      }
+    ]
+  }
+}
